@@ -1,0 +1,221 @@
+<html>
+	</head>
+		<style type="text/css">
+
+			.hex, .nextPiece {
+			    width: 50px;
+			    height: 50px;
+			    background: #234;
+			    border-radius: 75px;
+			    float: left;
+			    margin: -3px 1px;
+			    color: #fff;
+			    font-size: 18px;
+			    text-align: center;
+			    line-height: 50px;
+					
+			}
+			
+			.score {
+				display: block;
+				color: #fff;
+			}
+
+
+			.playarea {
+			    margin-top: 30px;
+			    display: block;
+			}
+			.nextPiece {
+				float: none;
+				display: block;
+			}
+
+			.hex:nth-child(20n+1) {
+			    margin-left: 27px;
+					
+			}
+			.hex:nth-child(10n+1) {
+			    clear: left;
+			}
+
+			.teamone {
+			    background: #33f;
+			}
+
+
+			.teamtwo {
+			    background: #f33;
+			}
+
+​
+		</style>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+		
+		<script type="text/javascript">
+			$(function() {
+			    var np = $('.nextPiece');
+					var height = 10;
+					var width = 10;
+
+
+			    function nextRound() {
+			        np.toggleClass('teamone').toggleClass('teamtwo');
+			        np.text(Math.round(Math.random() * 19) + 1);
+			    }
+			
+					function showScore() {
+						//Calculate score
+						var onetotal = 0;
+						$('.hex.teamone').each(function() {
+							onetotal += parseInt($(this).text());
+						});
+						$('.score.teamone').text("Blue team: " + onetotal);
+
+						var twototal = 0;
+						$('.hex.teamtwo').each(function() {
+							twototal += parseInt($(this).text());
+						});
+						$('.score.teamtwo').text("Red team: " + twototal);
+					}
+					
+					function doAI() {
+						var best = null;
+						var bestScore = 0;
+						$('.hex').not('.teamone').not('.teamtwo').each(function() {
+							var score = 0;
+							var myVal = parseInt(np.text());
+							var myTeam = np.hasClass('teamone') ? ".teamone" : ".teamtwo";
+			        var theirTeam = np.hasClass('teamone') ? ".teamtwo" : ".teamone";
+							
+							getAdjacent($(this)).each(function() {
+								if ($(this).is(myTeam))
+									return;
+								var val = parseInt($(this).text());
+								if (val < myVal) {
+									score += val;
+								}
+							});
+
+							if (score >= bestScore) {
+								bestScore = score;
+								best = $(this);
+							}
+						});
+						if (best != null) {
+							setTimeout(function() {
+								best.click();
+							}, 500);
+							
+						}
+					};
+					
+					
+					function getAdjacent(element) {
+						
+						var adjacent = [];
+						var index = hexes.index($(element));
+		        var notLeftSide = index % width != 0;
+		        var notRightSide = index % width != width - 1;
+
+		        if (notLeftSide) {
+		            adjacent[adjacent.length] = hexes.eq(index - 1)[0]; //left
+		        }
+		        if (notRightSide) {
+		            adjacent[adjacent.length] = hexes.eq(index + 1)[0]; //right
+		        }
+
+
+		        if (Math.floor(index / width) % 2 == 0) {
+
+		            if (index > width - 1) {
+		                if (notRightSide) {
+		                    adjacent[adjacent.length] = hexes.eq(index - (width - 1))[0]; //top right even
+		                }
+		                adjacent[adjacent.length] = hexes.eq(index - width)[0]; //top left even
+		            }
+		            if (notRightSide) {
+		                adjacent[adjacent.length] = hexes.eq(index + width + 1)[0]; //bottom right even
+		            }
+		            adjacent[adjacent.length] = hexes.eq(index + width)[0]; //bottom left even
+		        } else {
+		            if (notLeftSide) {
+		                adjacent[adjacent.length] = hexes.eq(index - (width + 1))[0]; //top left odd
+		                adjacent[adjacent.length] = hexes.eq(index + width - 1)[0]; //bottom left odd
+		            }
+		            adjacent[adjacent.length] = hexes.eq(index - width)[0]; //top right odd
+		            adjacent[adjacent.length] = hexes.eq(index + width)[0]; //bottom right odd
+		        }
+						return $(adjacent);
+					}
+					
+					showScore();
+			
+
+			    nextRound();
+					
+			    $('.hex').live('click', function() {
+
+			        if (parseInt($(this).text())) {
+			            return; //Already taken
+			        }
+
+			        $(this).text(np.text()); //Set nunmber
+			        $(this).addClass(np.attr('class')).removeClass('nextPiece'); //Set team
+			        nextRound();
+
+			        
+			        hexes.removeClass('adjacent');
+							var adjacent = getAdjacent($(this));
+
+			        var myTeam = $(this).hasClass('teamone') ? ".teamone" : ".teamtwo";
+			        var theirTeam = $(this).hasClass('teamone') ? ".teamtwo" : ".teamone";
+			        var myVal = parseInt($(this).text());
+
+			        adjacent.each(function() {
+									if ($(this).is(theirTeam))
+										return;
+			            var val = parseInt($(this).text());
+			            if (val < 20) {
+			                $(this).text(val + 1);
+			            }
+			        });
+
+
+			        adjacent.each(function() {
+									if ($(this).is(myTeam))
+										return;
+				
+			            var val = parseInt($(this).text());
+
+			            if (myVal > val) {
+			                $(this).toggleClass('teamone').toggleClass('teamtwo');
+			            }
+			        });
+
+							showScore();
+							if (myTeam != ".teamone")
+								doAI();
+							
+			    });
+
+			    for (var y = 0; y < height; y++) {
+			        for (var x = 0; x < width; x++) {
+			            $('<div class="hex"></div>').appendTo($('.playarea'));
+
+			        }
+			    }
+					hexes = $('.hex');
+					doAI();
+
+			});
+			</script>
+	</head>
+	<body>
+		<div class="score teamone"></div>
+		<div class="score teamtwo"></div>
+		Next piece:
+		<span class="nextPiece teamtwo"></span>
+		<span class="playarea"></span>
+	</body>
+</html>
