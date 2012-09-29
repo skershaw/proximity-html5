@@ -102,13 +102,11 @@
             if ($(this).is(myTeam)) {
             for (i=1; i<21; i++) {
               if (val < i){
-  			        risk += 0.05*val;
-			       	}
+  	        risk += 0.05*val;
+              }
             }
             
             score += risk;
-            
-            );
 
             if (score >= bestScore) {
               bestScore = score;
