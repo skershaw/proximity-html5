@@ -73,17 +73,42 @@
           var bestScore = 0;
           $('.hex').not('.teamone').not('.teamtwo').each(function () {
             var score = 0;
+            var risk = 0;
             var myVal = parseInt(np.text());
             var myTeam = np.hasClass('teamone') ? ".teamone" : ".teamtwo";
             var theirTeam = np.hasClass('teamone') ? ".teamtwo" : ".teamone";
 
             getAdjacent($(this)).each(function () {
-              if ($(this).is(myTeam)) return;
               var val = parseInt($(this).text());
+            
+            // Value of move for me
+            if ($(this).is(myTeam)) {
+              if (val < 20) {
+                score += 1;
+              }
+            }
+            if ($(this).is(theirTeam)) {
               if (val < myVal) {
                 score += val;
               }
-            });
+            }
+            
+            // Risk of them playing here next turn
+  		      if ($(this).is(theirTeam)) {
+			        if (val < 20) {
+				        risk += 1;
+			      	}
+			      }
+            if ($(this).is(myTeam)) {
+            for (i=1; i<21; i++) {
+              if (val < i){
+  			        risk += 0.05*val;
+			       	}
+            }
+            
+            score += risk;
+            
+            );
 
             if (score >= bestScore) {
               bestScore = score;
@@ -94,7 +119,6 @@
             setTimeout(function () {
               best.click();
             }, 500);
-
           }
         };
 
